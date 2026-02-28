@@ -11,8 +11,7 @@ async def main():
     try:
         load_dotenv()
         bot_tocken = os.getenv('BOT_TOCKEN')
-        # bot = Bot(token = bot_tocken, session = AiohttpSession(proxy="http://proxy.server:3128"))
-        bot = Bot(token=bot_tocken)
+        bot = Bot(token = bot_tocken, session = AiohttpSession(proxy="http://proxy.server:3128"))
         dp = Dispatcher()
         dp.include_router(router)
         dp.include_router(router_admin)
