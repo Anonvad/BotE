@@ -1,13 +1,16 @@
 import json
-import random
+import os.path
 
-from aiogram.filters import Command, CommandStart, CommandObject
-from aiogram import Router, F
-from aiogram.types import Message, FSInputFile
-import Key_Board.Reply_KeyBoard as rkb
-from Photo_List import photo_list
-from random import choice
 import aiohttp
+from random import choice, randint
+
+import key_board.reply_keyboard as rkb
+from aiogram import Router, F, Bot
+from aiogram.types import Message, FSInputFile
+from aiogram.filters import Command, CommandStart, CommandObject
+
+import gif
+from photos import photo_list, photof_list, photo_path
 
 router = Router()
 
@@ -18,9 +21,10 @@ idf = [-1002730278858, 5922044080, -1003772916363]
 async def cmsta(message: Message):
     print(f'{message.from_user.username}:{message.from_user.id} st98')
     if message.chat.id not in idf:
-        await message.answer("Hello\nSelect a Epstein's file category", reply_markup = rkb.reply_start)
+        await message.answer("Hello\nSelect a Epstein's file category", reply_markup=rkb.reply_start)
     else:
         await message.answer('Hello. My name is Jeffrey Epstein')
+
 
 @router.message(Command("help"))
 async def get_help(message: Message):
@@ -28,6 +32,7 @@ async def get_help(message: Message):
 Привет я Джеффри Эпштейн. Вот что я могу:
 /port - мой портрет
 /photo - рандомное фото из моих файлов
+/gif - рандомная gif
 Гдзи{параграф} - гдз по истории. Пример: Гдзи1
 Гдза{параграф} - гдз по английскому языку. Пример: Гдза1
 Гдзо{параграф} - гдз по обществознанию. Пример: Гдзо1
@@ -35,38 +40,53 @@ async def get_help(message: Message):
 /pege {предмет} - предсказание баллов на ЕГЭ по предмету с помощью квантовых вычислений, древних легенд, блокчейна и астрологии. Пример: /pege информатика
     """)
 
+
 @router.message(Command('port'))
 async def port(message: Message):
     photosd = FSInputFile(r"Epstein.jpg")
     await message.answer_photo(photo=photosd, caption='My portrait')
 
+
 @router.message(Command('photo'))
 async def randomphoto(message: Message):
     if message.chat.id not in idf:
-        chosen_photo = choice(photo_list)
-        photo = FSInputFile(f"photo/{chosen_photo}")
-        await message.answer_photo(photo=photo, caption = 'Комнада будет доступна через 2,5 секунды')
+        photo = FSInputFile(choice(photo_list))
+        await message.answer_photo(photo=photo)
     else:
-        chosen_photof = choice(photo_list)
-        photof = FSInputFile(f"photof/{chosen_photof}")
-        await message.answer_photo(photo=photof, caption = 'Комнада будет доступна через 2,5 секунды')
+        photof = FSInputFile(choice(photof_list))
+        await message.answer_photo(photo=photof)
     print(f'{message.from_user.username}:{message.from_user.id} EPH')
+
+
+@router.message(Command("add_photo"), F.photo)
+async def add_photo(message: Message, bot: Bot):
+    photo = message.photo[-1]
+    path = f"{photo_path}/{photo.file_unique_id}.jpg"
+    print("add photo:", path)
+    await bot.download(photo.file_id, path)
+    photo_list.append(path)
+    await message.answer("Фото добавлено")
+
 
 @router.message(F.text == "Epstein's photo")
 async def eph(message: Message):
     await message.answer('TGK_Link: t.me/jefphph')
 
+
 @router.message(F.text == "Epsten's messages")
 async def epm(message: Message):
     await message.answer('TGK_Link: t.me/jefmes')
+
 
 @router.message(F.text == "Epstein's purchases")
 async def epp(message: Message):
     await message.answer('TGK_Link: t.me/jefpur')
 
+
 @router.message(F.text == "Keys for pashalko")
 async def epk(message: Message):
     await message.answer("`Epstein`\n`Ainaz`\n`Eldar`", parse_mode="MarkdownV2")
+
 
 '''
 @router.message(F.text == 'Adolf_Hitler')
@@ -74,15 +94,17 @@ async def adkp(message: Message):
     print(f'{message.from_user.username}:{message.from_user.id} MI')
     await message.reply("||My idol||", parse_mode="MarkdownV2")
 '''
-    
+
 
 @router.message(F.text == 'Epstein')
 async def epkp(message: Message):
     await message.reply("||Island||", parse_mode="MarkdownV2")
 
+
 @router.message(F.text == 'Ainaz')
 async def agkp(message: Message):
     await message.reply("||ЖИРНЫЙ||", parse_mode="MarkdownV2")
+
 
 @router.message(F.text == 'Eldar')
 async def adkp(message: Message):
@@ -94,15 +116,18 @@ async def gdzid(message: Message):
     hlink = message.text
     await message.answer(f"https://reshak.ru/otvet/reshebniki.php?otvet={hlink[4:]}&predmet=medinsky_russia11")
 
+
 @router.message(F.text.startswith('Гдза'))
 async def gdzad(message: Message):
     elink = message.text
     await message.answer(f'https://gdz.ru/class-11/english/reshebnik-spotlight-11/{elink[4:]}-pg/')
 
+
 @router.message(F.text.startswith('Гдзо'))
 async def gdzod(message: Message):
     olink = message.text
     await message.answer(f'https://reshak.ru/otvet/reshebniki.php?otvet={olink[4:]}&predmet=bogolubov11')
+
 
 async def get_joke(category: int):
     try:
@@ -116,9 +141,11 @@ async def get_joke(category: int):
         print("Joke error:", e)
         return "Не удалось придумать анекдот"
 
+
 @router.message(Command("joke"))
 async def joke(message: Message):
     await message.answer(await get_joke(1))
+
 
 @router.message(Command("joke18"))
 async def joke(message: Message):
@@ -127,16 +154,30 @@ async def joke(message: Message):
     else:
         await message.answer(await get_joke(11))
 
+
 mat = open("resources/mat.txt", encoding="utf-8").readlines()
+
 
 @router.message(Command("mat"))
 async def ramdom_mat(message: Message):
     if message.chat.id not in idf:
         await message.answer(choice(mat))
 
+
 @router.message(Command("pege"))
 async def predict_ege(message: Message, command: CommandObject):
     if command.args is None:
         await message.answer("Ошибка: не передан аргумент")
     else:
-        await message.answer(f"Ты получишь {random.randint(0, 100)} баллов на ЕГЭ по {command.args}")
+        await message.answer(f"Ты получишь {randint(0, 100)} баллов на ЕГЭ по {command.args}")
+
+
+@router.message(Command("gif"))
+async def random_gif(message: Message):
+    await message.answer_animation(gif.random_gif_id())
+
+
+@router.message(Command("add_gif"), F.reply_to_message, F.reply_to_message.animation)
+async def add_gif(message: Message):
+    gif.add_gif(message.reply_to_message.animation.file_id)
+    await message.answer("Гифка добавлена")
