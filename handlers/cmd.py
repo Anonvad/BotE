@@ -58,13 +58,22 @@ async def randomphoto(message: Message):
     print(f'{message.from_user.username}:{message.from_user.id} EPH')
 
 
-@router.message(Command("add_photo"), F.photo)
-async def add_photo(message: Message, bot: Bot):
-    photo = message.photo[-1]
+async def add_photo(photo, bot: Bot):
     path = f"{photo_path}/{photo.file_unique_id}.jpg"
     print("add photo:", path)
     await bot.download(photo.file_id, path)
     photo_list.append(path)
+
+
+@router.message(Command("add_photo"), F.photo)
+async def add_photo_by_message(message: Message, bot: Bot):
+    await add_photo(message.photo[-1], bot)
+    await message.answer("Фото добавлено")
+
+
+@router.message(Command("add_photo", F.reply_to_message, F.reply_to_message.photo))
+async def add_photo_by_reply(message: Message, bot: Bot):
+    await add_photo(message.reply_to_message.photo[-1], bot)
     await message.answer("Фото добавлено")
 
 
